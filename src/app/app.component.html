@@ -1,0 +1,498 @@
+<div class="shell">
+  <aside class="sidebar">
+    <a
+      class="brand"
+      href="#"
+      (click)="$event.preventDefault(); navigate('overview')"
+      ><span class="logo">f.</span> flowdesk<span class="brand-dot">●</span></a
+    >
+    <div class="workspace">
+      <span class="workspace-icon">S</span>
+      <div>Studio workspace<small>Team spending, simplified</small></div>
+    </div>
+    <p class="nav-label">WORKSPACE</p>
+    <nav aria-label="Main navigation">
+      @for (
+        item of [
+          { id: "overview", icon: "◫", label: "Overview" },
+          { id: "requests", icon: "▤", label: "All requests" },
+          { id: "activity", icon: "◷", label: "Activity log" },
+          { id: "guide", icon: "◇", label: "Project guide" },
+        ];
+        track item.id
+      ) {
+        <button [class.active]="view() === item.id" (click)="navigate(item.id)">
+          <span>{{ item.icon }}</span
+          >{{ item.label }}
+          @if (item.id === "requests") {
+            <b>{{ store.requests().length }}</b>
+          }
+        </button>
+      }
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="demo-label"><span></span> INTERACTIVE DEMO</div>
+      <p>A little less admin.<br />A lot more progress.</p>
+      <button class="reset" (click)="reset()">↻ Reset demo data</button>
+    </div>
+    <div class="profile">
+      <span class="avatar">JB</span>
+      <div>Jordan Blake<small>Workspace approver</small></div>
+    </div>
+  </aside>
+  <div class="main-wrap">
+    <header class="topbar">
+      <span
+        >Workspace <span class="slash">/</span>
+        <strong>{{
+          view() === "overview"
+            ? "Overview"
+            : view() === "requests"
+              ? "All requests"
+              : view() === "activity"
+                ? "Activity log"
+                : "Project guide"
+        }}</strong></span
+      >
+      <div class="role">
+        <span>Demo role</span
+        ><select
+          aria-label="Demo role"
+          [ngModel]="store.role()"
+          (ngModelChange)="setRole($event)"
+        >
+          <option>Approver</option>
+          <option>Requester</option></select
+        ><span class="avatar small">JB</span>
+      </div>
+    </header>
+    <main>
+      @if (store.storageError()) {
+        <p class="alert" role="alert">
+          Browser storage is unavailable. Changes will last only for this
+          session.
+        </p>
+      }
+      @if (notice()) {
+        <div class="notice" role="status">
+          {{ notice()
+          }}<button aria-label="Dismiss notification" (click)="notice.set('')">
+            ×
+          </button>
+        </div>
+      }
+      <section class="page-heading">
+        <div>
+          <div class="eyebrow">YOUR WORKSPACE, IN FOCUS</div>
+          <h1>
+            {{
+              view() === "overview"
+                ? "Make room for better work."
+                : view() === "requests"
+                  ? "Every request. One place."
+                  : view() === "activity"
+                    ? "A clear trail of decisions."
+                    : "Built to use. Built to learn."
+            }}
+          </h1>
+          <p>
+            {{
+              view() === "overview"
+                ? "Keep team spending moving, from the first request to the final approval."
+                : view() === "requests"
+                  ? "Find, review, and manage what your team needs next."
+                  : view() === "activity"
+                    ? "Follow every submission and decision across your workspace."
+                    : "An Angular learning project with a real approval workflow."
+            }}
+          </p>
+        </div>
+        <button class="primary" (click)="showForm.set(true)">
+          <span>＋</span> New request
+        </button>
+      </section>
+      @if (view() === "overview") {
+        <section class="stats" aria-label="Workspace statistics">
+          <article class="stat">
+            <div>Awaiting review <span>◷</span></div>
+            <strong>{{ store.pendingCount() }}<small>requests</small></strong>
+            <p>
+              <span class="dot amber"></span
+              >{{
+                pendingAmount() | currency: "USD" : "symbol" : "1.0-0"
+              }}
+              waiting for a decision
+            </p>
+          </article>
+          <article class="stat">
+            <div>Approved spending <span>↗</span></div>
+            <strong>{{
+              approvedAmount() | currency: "USD" : "symbol" : "1.0-0"
+            }}</strong>
+            <p>
+              <span class="dot green"></span
+              >{{ store.approvedCount() }} approved requests
+            </p>
+          </article>
+          <article class="stat">
+            <div>Total requests <span>▤</span></div>
+            <strong
+              >{{ store.requests().length }}<small>requests</small></strong
+            >
+            <p>Across all categories and statuses</p>
+          </article>
+        </section>
+        <section class="callout">
+          <div class="callout-icon">✓</div>
+          <div>
+            <h2>A clear queue. A focused team.</h2>
+            <p>
+              {{ store.pendingCount() }} requests need a decision. Give your
+              team the go-ahead.
+            </p>
+          </div>
+          <button (click)="navigate('requests'); setStatus('Pending')">
+            Review pending <span>→</span>
+          </button>
+        </section>
+      }
+      @if (view() === "overview" || view() === "requests") {
+        <section class="panel requests-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>
+                {{
+                  view() === "overview" ? "Request workspace" : "All requests"
+                }}
+                <span class="count">{{ store.filtered().length }}</span>
+              </h2>
+              <p>A little visibility goes a long way.</p>
+            </div>
+            <button class="secondary" (click)="exportCsv()">
+              ↓ Export CSV
+            </button>
+          </div>
+          <div class="tools">
+            <div class="tabs" aria-label="Filter by status">
+              @for (status of statuses; track status) {
+                <button
+                  [class.selected]="store.statusFilter() === status"
+                  (click)="setStatus(status)"
+                >
+                  {{ status === "All" ? "All requests" : status }}
+                </button>
+              }
+            </div>
+            <label class="search"
+              ><span>⌕</span
+              ><input
+                aria-label="Search requests"
+                placeholder="Search requests…"
+                [ngModel]="store.query()"
+                (ngModelChange)="store.query.set($event)"
+            /></label>
+          </div>
+          <div class="filter-row">
+            <label
+              >Category
+              <select
+                [ngModel]="store.categoryFilter()"
+                (ngModelChange)="setCategory($event)"
+              >
+                <option>All</option>
+                @for (c of categories; track c) {
+                  <option>{{ c }}</option>
+                }
+              </select></label
+            ><label
+              >Sort by
+              <select
+                aria-label="Sort requests"
+                [ngModel]="store.sort()"
+                (ngModelChange)="store.sort.set($event)"
+              >
+                <option value="newest">Newest first</option>
+                <option value="amount">Highest amount</option>
+              </select></label
+            >
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>REQUEST</th>
+                  <th>REQUESTER</th>
+                  <th>AMOUNT</th>
+                  <th>STATUS</th>
+                  <th>SUBMITTED</th>
+                  <th><span class="sr-only">Details</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of store.filtered(); track r.id) {
+                  <tr>
+                    <td>
+                      <button class="request-title" (click)="select(r.id)">
+                        <span
+                          class="category-icon"
+                          [class.travel]="r.category === 'Travel'"
+                          >{{
+                            r.category === "Equipment"
+                              ? "▱"
+                              : r.category === "Software"
+                                ? "▦"
+                                : r.category === "Travel"
+                                  ? "↗"
+                                  : "◇"
+                          }}</span
+                        ><span
+                          >{{ r.title
+                          }}<small>{{ r.id }} · {{ r.category }}</small></span
+                        >
+                      </button>
+                    </td>
+                    <td>
+                      <span class="person"
+                        ><span class="avatar tiny">{{
+                          r.requester.slice(0, 1)
+                        }}</span
+                        >{{ r.requester }}</span
+                      >
+                    </td>
+                    <td class="money">{{ r.amount | currency }}</td>
+                    <td>
+                      <span
+                        class="badge"
+                        [class]="'badge ' + r.status.toLowerCase()"
+                        ><span>●</span>{{ r.status }}</span
+                      >
+                    </td>
+                    <td class="date">{{ r.createdAt | date: "MMM d, y" }}</td>
+                    <td>
+                      <button
+                        class="arrow"
+                        [attr.aria-label]="'View ' + r.title"
+                        (click)="select(r.id)"
+                      >
+                        ↗
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="empty">
+                      <h3>No matching requests</h3>
+                      <p>
+                        Try a different search or filter, or create a new
+                        request.
+                      </p>
+                      <button class="secondary" (click)="navigate('requests')">
+                        Clear filters
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            Showing {{ store.filtered().length }} of
+            {{ store.requests().length }} requests<span
+              >All amounts in USD</span
+            >
+          </div>
+        </section>
+        @if (view() === "overview") {
+          <section class="bottom-grid">
+            <article class="panel">
+              <div class="panel-heading">
+                <h2>Recent activity</h2>
+                <button class="text-button" (click)="navigate('activity')">
+                  View all →
+                </button>
+              </div>
+              @for (h of recentActivity().slice(0, 3); track $index) {
+                <button class="activity-item" (click)="select(h.id)">
+                  <span class="activity-dot">✓</span
+                  ><span
+                    ><strong>{{ h.action }}</strong
+                    ><small>{{ h.title }} · {{ h.by }}</small></span
+                  ><time>{{ h.at | date: "MMM d" }}</time>
+                </button>
+              }
+            </article>
+            <article class="help-card">
+              <div class="eyebrow">A BETTER WAY TO REQUEST</div>
+              <h2>Good context.<br />Faster decisions.</h2>
+              <p>
+                Include the business need, a clear cost, and who will benefit
+                when you submit a request.
+              </p>
+              <button class="text-button" (click)="showForm.set(true)">
+                Create your first request →
+              </button>
+            </article>
+          </section>
+        }
+      }
+      @if (view() === "activity") {
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Workspace activity</h2>
+            <span class="muted">Newest first</span>
+          </div>
+          @for (h of recentActivity(); track $index) {
+            <button class="activity-item" (click)="select(h.id)">
+              <span class="activity-dot">✓</span
+              ><span
+                ><strong>{{ h.action }}</strong
+                ><small>{{ h.title }} · {{ h.by }}</small></span
+              ><time>{{ h.at | date: "medium" }}</time>
+            </button>
+          }
+          <p class="panel-footnote">
+            Open any request to see its complete history.
+          </p>
+        </section>
+      }
+      @if (view() === "guide") {
+        <section class="guide-grid">
+          @for (
+            g of [
+              {
+                n: "01",
+                title: "The problem",
+                text: "Teams lose purchase requests in chat and email. Flowdesk gives them one place to submit spending needs, review business context, and record decisions.",
+              },
+              {
+                n: "02",
+                title: "Try the complete workflow",
+                text: "Create a request with a business justification. Find it with search or filters, open its details, add a review note, and approve it. Refresh to see your saved decision.",
+              },
+              {
+                n: "03",
+                title: "Angular concepts in action",
+                text: "Standalone components compose the interface. Reactive Forms validate input. Signals hold state, computed values derive totals, and a dependency-injected service owns business rules.",
+              },
+              {
+                n: "04",
+                title: "Understand the boundaries",
+                text: "This is a browser-only prototype using mock people and local storage. The demo role switch is not security. A production version needs server-side authorization, a database, and a verified audit log.",
+              },
+            ];
+            track g.n
+          ) {
+            <article class="panel guide-card">
+              <span>{{ g.n }}</span>
+              <h2>{{ g.title }}</h2>
+              <p>{{ g.text }}</p>
+            </article>
+          }
+        </section>
+      }
+      <footer>
+        flowdesk <span>Less friction. More forward.</span
+        ><span class="footer-right">Angular · Local demo</span>
+      </footer>
+    </main>
+  </div>
+</div>
+@if (showForm()) {
+  <div class="overlay" (click)="showForm.set(false)">
+    <section
+      class="dialog"
+      appDialogFocus
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="form-title"
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="showForm.set(false)"
+      tabindex="-1"
+    >
+      <div class="dialog-heading">
+        <div>
+          <div class="eyebrow">LET’S MOVE WORK FORWARD</div>
+          <h2 id="form-title">New spending request</h2>
+        </div>
+        <button aria-label="Close form" (click)="showForm.set(false)">×</button>
+      </div>
+      <p class="muted">Give your approver the context they need to say yes.</p>
+      <app-request-form
+        (saved)="create($event)"
+        (cancelled)="showForm.set(false)"
+      />
+    </section>
+  </div>
+}
+@if (store.selected(); as r) {
+  <div class="overlay" (click)="store.selectedId.set(null)">
+    <section
+      class="dialog detail"
+      appDialogFocus
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="detail-title"
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="store.selectedId.set(null)"
+      tabindex="-1"
+    >
+      <div class="dialog-heading">
+        <span class="eyebrow">{{ r.id }} · {{ r.category }}</span
+        ><button
+          aria-label="Close request"
+          (click)="store.selectedId.set(null)"
+        >
+          ×
+        </button>
+      </div>
+      <h2 id="detail-title">{{ r.title }}</h2>
+      <span [class]="'badge ' + r.status.toLowerCase()">● {{ r.status }}</span>
+      <div class="detail-summary">
+        <div>
+          <small>REQUESTED BY</small><strong>{{ r.requester }}</strong>
+        </div>
+        <div>
+          <small>AMOUNT</small><strong>{{ r.amount | currency }}</strong>
+        </div>
+      </div>
+      <h3>Business justification</h3>
+      <p class="justification">{{ r.description }}</p>
+      <h3>Request timeline</h3>
+      @for (h of r.history; track $index) {
+        <div class="timeline">
+          <span class="dot green"></span>
+          <div>
+            <strong>{{ h.action }}</strong
+            ><small>{{ h.by }} · {{ h.at | date: "medium" }}</small>
+          </div>
+        </div>
+      }
+      @if (r.status === "Pending" && store.role() === "Approver") {
+        <label class="note-label"
+          >Review note (required for rejection)<textarea
+            rows="3"
+            [(ngModel)]="note"
+            maxlength="1000"
+            placeholder="Explain your decision…"
+          ></textarea>
+        </label>
+        <div class="decision-buttons">
+          <button class="reject" (click)="decide('Rejected')">
+            Reject request</button
+          ><button class="primary" (click)="decide('Approved')">
+            ✓ Approve request
+          </button>
+        </div>
+      } @else if (r.status === "Pending") {
+        <p class="hint-box">
+          Switch the demo role to Approver to review this request.
+        </p>
+      } @else {
+        <p class="hint-box">
+          This request is {{ r.status.toLowerCase() }}. The decision is recorded
+          in its timeline.
+        </p>
+      }
+    </section>
+  </div>
+}

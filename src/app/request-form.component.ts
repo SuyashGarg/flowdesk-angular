@@ -5,113 +5,133 @@ import {
   FormGroup,
   Validators,
 } from "@angular/forms";
+import { MatButtonModule } from "@angular/material/button";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatInputModule } from "@angular/material/input";
+import { MatSelectModule } from "@angular/material/select";
 import { RequestCategory } from "./request.model";
 
 // The form owns input and validation; the parent owns saving and navigation.
 @Component({
   selector: "app-request-form",
   standalone: true,
-  imports: [ReactiveFormsModule],
-  template: ` <form [formGroup]="form" (ngSubmit)="submit()">
-    <label
-      >Request title<input
-        formControlName="title"
-        placeholder="e.g. Laptops for the new design team"
-        maxlength="100"
-    /></label>
-    <div class="two">
-      <label
-        >Category<select formControlName="category">
-          <option>Software</option>
-          <option>Equipment</option>
-          <option>Travel</option>
-          <option>Other</option>
-        </select></label
-      >
-      <label
-        >Amount (USD)<input
-          type="number"
-          formControlName="amount"
-          min="1"
-          max="1000000"
-          placeholder="0.00"
-      /></label>
-    </div>
-    <label
-      >Business justification<textarea
-        formControlName="description"
-        rows="5"
-        maxlength="2000"
-        placeholder="What problem does this solve? Who benefits, and why now?"
-      ></textarea>
-    </label>
-    <p class="hint">
-      Use a clear title, an amount between $1 and $1,000,000, and at least 20
-      characters of justification.
-    </p>
-    @if (attempted && form.invalid) {
-      <p role="alert" class="error">
-        Please complete all fields with the requirements above.
-      </p>
-    }
-    <div class="actions">
-      <button type="button" (click)="cancelled.emit()">Cancel</button
-      ><button class="primary" type="submit">Submit request ↗</button>
-    </div>
-  </form>`,
+  imports: [
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+  ],
+  template: `
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <mat-form-field appearance="outline" floatLabel="always">
+        <mat-label>Request title</mat-label>
+        <input
+          matInput
+          formControlName="title"
+          placeholder="e.g. Laptops for the design team"
+          maxlength="100"
+        />
+        <mat-error>Enter a request title.</mat-error>
+      </mat-form-field>
+      <div class="two">
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label>Category</mat-label>
+          <mat-select formControlName="category">
+            @for (category of categories; track category) {
+              <mat-option [value]="category">{{ category }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label>Amount (USD)</mat-label>
+          <input
+            matInput
+            type="number"
+            formControlName="amount"
+            min="1"
+            max="1000000"
+            placeholder="0.00"
+          />
+          <mat-error>Enter $1–$1,000,000.</mat-error>
+        </mat-form-field>
+      </div>
+      <mat-form-field appearance="outline" floatLabel="always">
+        <mat-label>Business justification</mat-label>
+        <textarea
+          matInput
+          formControlName="description"
+          rows="4"
+          maxlength="2000"
+          placeholder="What problem does this solve? Who benefits, and why now?"
+        ></textarea>
+        <mat-hint
+          >At least 20 characters explaining the business need.</mat-hint
+        >
+        <mat-error
+          >Include at least 20 characters of meaningful context.</mat-error
+        >
+      </mat-form-field>
+      @if (attempted && form.invalid) {
+        <p role="alert" class="error">
+          Please review the highlighted fields before submitting.
+        </p>
+      }
+      <div class="actions">
+        <button mat-button type="button" (click)="cancelled.emit()">
+          Cancel
+        </button>
+        <button mat-flat-button type="submit">Submit request ↗</button>
+      </div>
+    </form>
+  `,
   styles: [
     `
-      label {
+      form {
         display: grid;
-        gap: 8px;
-        margin: 18px 0;
-        font-size: 14px;
-        font-weight: 600;
+        gap: 6px;
+        padding-top: 20px;
       }
-      input,
-      select,
-      textarea {
+      mat-form-field {
         width: 100%;
-        border: 1px solid #d9dfdc;
-        border-radius: 8px;
-        padding: 12px;
-        background: white;
-        font: inherit;
+        min-width: 0;
       }
       .two {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         gap: 16px;
       }
-      .hint {
-        font-size: 12px;
-        color: #65736d;
-        line-height: 1.6;
+      textarea {
+        resize: vertical;
       }
       .error {
-        color: #b52d35;
+        color: #b3261e;
+        font-size: 12px;
+        line-height: 1.6;
+        margin: 0;
       }
       .actions {
         display: flex;
         justify-content: flex-end;
         gap: 12px;
-        margin-top: 24px;
+        margin-top: 20px;
       }
-      button {
-        padding: 12px 18px;
-        border: 1px solid #d9dfdc;
-        border-radius: 8px;
-        background: white;
-      }
-      .primary {
-        background: #235c48;
-        color: white;
-        border-color: #235c48;
+      @media (max-width: 440px) {
+        .two {
+          grid-template-columns: 1fr;
+          gap: 6px;
+        }
       }
     `,
   ],
 })
 export class RequestFormComponent {
+  readonly categories: RequestCategory[] = [
+    "Software",
+    "Equipment",
+    "Travel",
+    "Other",
+  ];
   readonly saved = output<{
     title: string;
     category: RequestCategory;
@@ -141,7 +161,10 @@ export class RequestFormComponent {
       nonNullable: true,
       validators: [
         Validators.required,
-        (control) => control.value.trim().length >= 20 && control.value.length <= 2000 ? null : {justification: true},
+        (control) =>
+          control.value.trim().length >= 20 && control.value.length <= 2000
+            ? null
+            : { justification: true },
       ],
     }),
   });

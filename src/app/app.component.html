@@ -22,8 +22,7 @@
         track item.id
       ) {
         <button [class.active]="view() === item.id" (click)="navigate(item.id)">
-          <span>{{ item.icon }}</span
-          >{{ item.label }}
+          <span>{{ item.icon }}</span>{{ item.label }}
           @if (item.id === "requests") {
             <b>{{ store.requests().length }}</b>
           }
@@ -55,15 +54,22 @@
         }}</strong></span
       >
       <div class="role">
-        <span>Demo role</span
-        ><select
-          aria-label="Demo role"
-          [ngModel]="store.role()"
-          (ngModelChange)="setRole($event)"
+        <span>Demo role</span>
+        <mat-form-field
+          appearance="outline"
+          subscriptSizing="dynamic"
+          class="role-field"
         >
-          <option>Approver</option>
-          <option>Requester</option></select
-        ><span class="avatar small">JB</span>
+          <mat-select
+            aria-label="Demo role"
+            [ngModel]="store.role()"
+            (ngModelChange)="setRole($event)"
+          >
+            <mat-option value="Approver">Approver</mat-option>
+            <mat-option value="Requester">Requester</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <span class="avatar small">JB</span>
       </div>
     </header>
     <main>
@@ -107,7 +113,7 @@
             }}
           </p>
         </div>
-        <button class="primary" (click)="showForm.set(true)">
+        <button mat-flat-button class="primary" (click)="showForm.set(true)">
           <span>＋</span> New request
         </button>
       </section>
@@ -118,9 +124,7 @@
             <strong>{{ store.pendingCount() }}<small>requests</small></strong>
             <p>
               <span class="dot amber"></span
-              >{{
-                pendingAmount() | currency: "USD" : "symbol" : "1.0-0"
-              }}
+              >{{ pendingAmount() | currency: "USD" : "symbol" : "1.0-0" }}
               waiting for a decision
             </p>
           </article>
@@ -168,7 +172,7 @@
               </h2>
               <p>A little visibility goes a long way.</p>
             </div>
-            <button class="secondary" (click)="exportCsv()">
+            <button mat-stroked-button class="secondary" (click)="exportCsv()">
               ↓ Export CSV
             </button>
           </div>
@@ -183,38 +187,45 @@
                 </button>
               }
             </div>
-            <label class="search"
-              ><span>⌕</span
-              ><input
-                aria-label="Search requests"
+            <mat-form-field
+              appearance="outline"
+              subscriptSizing="dynamic"
+              class="search-field"
+            >
+              <mat-label>Search requests</mat-label>
+              <input
+                matInput
                 placeholder="Search requests…"
                 [ngModel]="store.query()"
                 (ngModelChange)="store.query.set($event)"
-            /></label>
+              />
+            </mat-form-field>
           </div>
           <div class="filter-row">
-            <label
-              >Category
-              <select
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Category</mat-label>
+              <mat-select
+                aria-label="Filter by category"
                 [ngModel]="store.categoryFilter()"
                 (ngModelChange)="setCategory($event)"
               >
-                <option>All</option>
+                <mat-option value="All">All categories</mat-option>
                 @for (c of categories; track c) {
-                  <option>{{ c }}</option>
+                  <mat-option [value]="c">{{ c }}</mat-option>
                 }
-              </select></label
-            ><label
-              >Sort by
-              <select
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Sort by</mat-label>
+              <mat-select
                 aria-label="Sort requests"
                 [ngModel]="store.sort()"
                 (ngModelChange)="store.sort.set($event)"
               >
-                <option value="newest">Newest first</option>
-                <option value="amount">Highest amount</option>
-              </select></label
-            >
+                <mat-option value="newest">Newest first</mat-option>
+                <mat-option value="amount">Highest amount</mat-option>
+              </mat-select>
+            </mat-form-field>
           </div>
           <div class="table-wrap">
             <table>
@@ -244,8 +255,7 @@
                                 : r.category === "Travel"
                                   ? "↗"
                                   : "◇"
-                          }}</span
-                        ><span
+                          }}</span><span
                           >{{ r.title
                           }}<small>{{ r.id }} · {{ r.category }}</small></span
                         >
@@ -286,7 +296,11 @@
                         Try a different search or filter, or create a new
                         request.
                       </p>
-                      <button class="secondary" (click)="navigate('requests')">
+                      <button
+                        mat-stroked-button
+                        class="secondary"
+                        (click)="navigate('requests')"
+                      >
                         Clear filters
                       </button>
                     </td>
@@ -406,7 +420,7 @@
       aria-modal="true"
       aria-labelledby="form-title"
       (click)="$event.stopPropagation()"
-      (keydown.escape)="showForm.set(false)"
+      (dialogEscape)="showForm.set(false)"
       tabindex="-1"
     >
       <div class="dialog-heading">
@@ -414,7 +428,13 @@
           <div class="eyebrow">LET’S MOVE WORK FORWARD</div>
           <h2 id="form-title">New spending request</h2>
         </div>
-        <button aria-label="Close form" (click)="showForm.set(false)">×</button>
+        <button
+          mat-icon-button
+          aria-label="Close form"
+          (click)="showForm.set(false)"
+        >
+          ×
+        </button>
       </div>
       <p class="muted">Give your approver the context they need to say yes.</p>
       <app-request-form
@@ -433,12 +453,13 @@
       aria-modal="true"
       aria-labelledby="detail-title"
       (click)="$event.stopPropagation()"
-      (keydown.escape)="store.selectedId.set(null)"
+      (dialogEscape)="store.selectedId.set(null)"
       tabindex="-1"
     >
       <div class="dialog-heading">
         <span class="eyebrow">{{ r.id }} · {{ r.category }}</span
         ><button
+          mat-icon-button
           aria-label="Close request"
           (click)="store.selectedId.set(null)"
         >
@@ -462,24 +483,32 @@
         <div class="timeline">
           <span class="dot green"></span>
           <div>
-            <strong>{{ h.action }}</strong
-            ><small>{{ h.by }} · {{ h.at | date: "medium" }}</small>
+            <strong>{{ h.action }}</strong><small
+              >{{ h.by }} · {{ h.at | date: "medium" }}</small
+            >
           </div>
         </div>
       }
       @if (r.status === "Pending" && store.role() === "Approver") {
-        <label class="note-label"
-          >Review note (required for rejection)<textarea
+        <mat-form-field appearance="outline" class="review-field">
+          <mat-label>Review note</mat-label>
+          <textarea
+            matInput
             rows="3"
             [(ngModel)]="note"
             maxlength="1000"
             placeholder="Explain your decision…"
           ></textarea>
-        </label>
+          <mat-hint>Required for rejection; at least 5 characters.</mat-hint>
+        </mat-form-field>
         <div class="decision-buttons">
-          <button class="reject" (click)="decide('Rejected')">
+          <button
+            mat-stroked-button
+            class="reject"
+            (click)="decide('Rejected')"
+          >
             Reject request</button
-          ><button class="primary" (click)="decide('Approved')">
+          ><button mat-flat-button class="primary" (click)="decide('Approved')">
             ✓ Approve request
           </button>
         </div>

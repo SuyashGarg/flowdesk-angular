@@ -2,7 +2,7 @@
 
 A working portfolio demo for a common team problem: spending requests get lost in chat, decisions lack context, and nobody knows what is waiting for review.
 
-Flowdesk lets a team submit a justified spending request, find it in a shared queue, approve or reject it, and follow its history. It uses Angular 18, TypeScript, standalone components, Reactive Forms, and Signals. No React.
+Flowdesk lets a team submit a justified spending request, find it in a shared queue, approve or reject it, and follow its history. It uses Angular 18, TypeScript, standalone components, Reactive Forms, Signals, and Angular Material. No React.
 
 ## Run locally
 
@@ -14,6 +14,14 @@ npm start
 ```
 
 Visit http://localhost:4200. `npm run build` creates a production build in `dist/approval-flow/browser`.
+
+## Styling and Angular Material
+
+Layout uses ordinary component CSS with Flexbox, Grid, and media queries. There is no Tailwind or Bootstrap. `src/styles.scss` uses Sass only to configure the Angular Material theme: the primary color, typography, density, and component theme mixins live in one place. The Angular build compiles that SCSS to CSS.
+
+Angular Material supplies buttons, outlined form fields, text inputs, category and role dropdowns, filtering controls, and review notes. The standalone components import only the Material modules they use. `src/main.ts` enables asynchronous animations for dropdown overlays. Form values and validators remain in Angular Reactive Forms; Material supplies their visual presentation and field errors.
+
+The desktop sidebar is fixed to the viewport. The content column reserves matching space using `margin-inline-start`. At 850px and below, navigation returns to normal document flow above the content. On short desktop screens, navigation can scroll internally so its lower controls remain reachable.
 
 ## A five-minute demo
 

@@ -6,6 +6,10 @@ import {
   signal,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { MatButtonModule } from "@angular/material/button";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatInputModule } from "@angular/material/input";
+import { MatSelectModule } from "@angular/material/select";
 import { FormsModule } from "@angular/forms";
 import { RequestStore } from "./request.store";
 import { DialogFocusDirective } from "./dialog-focus.directive";
@@ -16,6 +20,10 @@ import { RequestCategory, RequestStatus, Role } from "./request.model";
   standalone: true,
   imports: [
     CommonModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
     FormsModule,
     RequestFormComponent,
     DialogFocusDirective,

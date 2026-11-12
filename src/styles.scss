@@ -1,0 +1,78 @@
+@use "@angular/material" as mat;
+@use "sass:map";
+
+@include mat.core();
+
+// One theme for controls across the app. Layout stays in component CSS.
+$flowdesk-theme: mat.define-theme(
+  (
+    color: (
+      theme-type: light,
+      primary: map.merge(
+          mat.$green-palette,
+          (
+            40: #285e49,
+            90: #d4eadd,
+          )
+        ),
+      tertiary: mat.$yellow-palette,
+    ),
+    typography: (
+      plain-family: 'Inter, "Segoe UI", Arial, sans-serif',
+      brand-family: 'Inter, "Segoe UI", Arial, sans-serif',
+      medium-weight: 500,
+      bold-weight: 600,
+    ),
+    density: (
+      scale: -1,
+    ),
+  )
+);
+
+html {
+  @include mat.core-theme($flowdesk-theme);
+  @include mat.button-theme($flowdesk-theme);
+  @include mat.icon-button-theme($flowdesk-theme);
+  @include mat.form-field-theme($flowdesk-theme);
+  @include mat.input-theme($flowdesk-theme);
+  @include mat.select-theme($flowdesk-theme);
+  @include mat.option-theme($flowdesk-theme);
+}
+
+:root {
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: #253d35;
+  background: #f7f8fa;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button:not([mat-button]):not([mat-flat-button]):not([mat-stroked-button]):not(
+    [mat-icon-button]
+  ) {
+  cursor: pointer;
+  color: inherit;
+  min-height: 40px;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #92bca7;
+  outline-offset: 3px;
+}
+button:not([mat-button]):not([mat-flat-button]):not([mat-stroked-button]):not(
+    [mat-icon-button]
+  ):hover {
+  filter: brightness(0.96);
+}

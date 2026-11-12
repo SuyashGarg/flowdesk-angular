@@ -2,7 +2,7 @@
   display: block;
 }
 .shell {
-  display: flex;
+  display: block;
   min-height: 100vh;
 }
 .sidebar {
@@ -13,9 +13,13 @@
   display: flex;
   flex-direction: column;
   padding: 30px 18px 20px;
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  /* Pin navigation to the viewport; only the content column scrolls with the page. */
+  position: fixed;
+  inset: 0 auto 0 0;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  z-index: 10;
 }
 .brand {
   display: flex;
@@ -170,6 +174,7 @@ nav b {
   font-size: 10px;
 }
 .main-wrap {
+  margin-inline-start: 230px;
   min-width: 0;
   flex: 1;
 }
@@ -197,12 +202,8 @@ nav b {
   align-items: center;
   gap: 15px;
 }
-.role select {
-  background: white;
-  border: 1px solid #e5eae7;
-  border-radius: 6px;
-  font-size: 11px;
-  padding: 8px;
+.role-field {
+  width: 145px;
 }
 main {
   max-width: 1500px;
@@ -229,19 +230,9 @@ main {
   margin: 0;
 }
 .primary {
-  background: #285e49;
-  color: #fff;
-  border: 1px solid #285e49;
-  border-radius: 7px;
-  padding: 11px 17px;
-  font-size: 12px;
-  font-weight: 550;
   white-space: nowrap;
 }
-.primary span {
-  font-size: 18px;
-  margin-right: 6px;
-}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -369,13 +360,7 @@ main {
   color: #6a7c60;
   margin-left: 6px;
 }
-.secondary {
-  background: white;
-  border: 1px solid #e2e7e2;
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 11px;
-}
+
 .tools {
   padding: 0 24px 15px;
   display: flex;
@@ -403,38 +388,21 @@ main {
   color: #476747;
   font-weight: 600;
 }
-.search {
-  display: flex;
-  align-items: center;
-  border: 1px solid #e4e9e5;
-  border-radius: 6px;
-  padding: 0 10px;
-  color: #74856b;
-  gap: 7px;
-}
-.search input {
-  border: 0;
-  min-height: 33px;
-  font-size: 11px;
-  width: 140px;
+.search-field {
+  width: 230px;
+  min-width: 150px;
 }
 .filter-row {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 24px;
+  gap: 16px;
+  padding: 18px 24px;
   color: #718066;
   font-size: 10px;
 }
-.filter-row select {
-  border: 0;
-  background: #f8f9f7;
-  color: #647568;
-  font-size: 10px;
-  min-height: 28px;
-  border-radius: 4px;
-  margin-left: 6px;
-  padding: 3px;
+.filter-row mat-form-field {
+  width: 180px;
+  max-width: 100%;
 }
 .table-wrap {
   overflow-x: auto;
@@ -730,7 +698,7 @@ footer span {
   align-items: center;
   gap: 12px;
 }
-.dialog-heading button {
+.dialog-heading button:not([mat-icon-button]) {
   background: none;
   border: 0;
   font-size: 26px;
@@ -794,18 +762,6 @@ footer span {
   color: #738660;
   margin-top: 7px;
 }
-.note-label {
-  display: grid;
-  gap: 9px;
-  font-size: 11px;
-  margin-top: 25px;
-}
-.note-label textarea {
-  border: 1px solid #e0e6db;
-  padding: 12px;
-  border-radius: 7px;
-  resize: vertical;
-}
 .decision-buttons {
   display: flex;
   justify-content: flex-end;
@@ -813,12 +769,7 @@ footer span {
   margin-top: 18px;
 }
 .reject {
-  border: 1px solid #ead8d0;
-  background: #fffaf8;
-  border-radius: 7px;
-  color: #a56d61;
-  padding: 10px 15px;
-  font-size: 12px;
+  color: #a33d32;
 }
 .hint-box {
   background: #f3f6ef;
@@ -836,6 +787,9 @@ footer span {
   clip: rect(0, 0, 0, 0);
 }
 @media (max-width: 1200px) {
+  .main-wrap {
+    margin-inline-start: 205px;
+  }
   .sidebar {
     width: 205px;
     padding: 28px 14px;
@@ -852,11 +806,8 @@ footer span {
   .tools {
     flex-wrap: wrap;
   }
-  .search {
+  .search-field {
     flex: 1;
-  }
-  .search input {
-    width: 100%;
   }
   .stats {
     gap: 12px;
@@ -872,6 +823,9 @@ footer span {
   }
 }
 @media (max-width: 850px) {
+  .main-wrap {
+    margin-inline-start: 0;
+  }
   .shell {
     display: block;
   }
@@ -879,6 +833,7 @@ footer span {
     width: auto;
     height: auto;
     position: static;
+    overflow-y: visible;
     padding: 16px 20px;
     border-right: 0;
     border-bottom: 1px solid #e5eae7;
@@ -1024,9 +979,6 @@ footer span {
     padding: 8px 10px;
     font-size: 10px;
   }
-  .search input {
-    min-height: 38px;
-  }
   .filter-row {
     padding: 10px 16px;
   }
@@ -1089,5 +1041,27 @@ footer span {
   }
   .page-heading p {
     overflow-wrap: anywhere;
+  }
+}
+
+.review-field {
+  width: 100%;
+  margin-top: 24px;
+}
+@media (max-width: 600px) {
+  .filter-row {
+    gap: 12px;
+  }
+  .filter-row mat-form-field {
+    width: calc(50% - 6px);
+  }
+  .role-field {
+    width: 130px;
+  }
+}
+
+@media (max-width: 600px) {
+  .search-field {
+    width: 100%;
   }
 }

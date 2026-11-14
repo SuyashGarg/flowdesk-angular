@@ -13,7 +13,21 @@ npm ci
 npm start
 ```
 
-Visit http://localhost:4200. `npm run build` creates a production build in `dist/approval-flow/browser`.
+Visit http://localhost:4201. `npm run build` creates a production build in `dist/approval-flow/browser`.
+
+## Large request lists
+
+The request table renders 25 rows by default, with 50 and 100-row options. Search waits 250 ms after typing, and changing filters, sort, or page size returns to page one. The activity log renders 25 events per page. CSV export includes all matching requests across pages and applies the current search text immediately.
+
+Run `node scripts/check-scale.cjs` for synthetic 1,500-request regression checks. These use lightweight Angular substitutes and do not measure real browser rendering. Client-side filtering and sorting still process the full dataset; local storage still serializes the whole collection on changes. This improves rendering bounds without replacing the need for server pagination and durable storage in a multi-user system.
+
+## Review workspace improvements
+
+- Use **Review oldest pending** to open the longest-waiting request, regardless of list filters. After a decision, **Review next pending** continues through the queue.
+- Choose **Oldest first** to sort the list by submission date.
+- Enable **My requests** to show requests submitted as “You” in this browser. This filter is independent of the demo role.
+- The overview summarizes pending and approved spending by category; rejected amounts are excluded.
+- Request fields show specific validation feedback and a live justification character count.
 
 ## Styling and Angular Material
 

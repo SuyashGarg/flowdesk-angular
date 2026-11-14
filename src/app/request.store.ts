@@ -107,6 +107,8 @@ export class RequestStore {
   readonly statusFilter = signal<RequestStatus | "All">("All");
   readonly categoryFilter = signal<RequestCategory | "All">("All");
   readonly sort = signal("newest");
+  readonly onlyMine = signal(false);
+  readonly pendingQueue = computed(() => this.requests().filter(r => r.status === "Pending").sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id)));
   readonly storageError = signal(false);
   readonly selectedId = signal<string | null>(null);
   readonly pendingCount = computed(
@@ -127,6 +129,7 @@ export class RequestStore {
     return this.requests()
       .filter(
         (r) =>
+          (!this.onlyMine() || r.requester === "You") &&
           (status === "All" || r.status === status) &&
           (this.categoryFilter() === "All" ||
             r.category === this.categoryFilter()) &&
@@ -138,7 +141,9 @@ export class RequestStore {
       .sort((a, b) =>
         this.sort() === "amount"
           ? b.amount - a.amount
-          : b.createdAt.localeCompare(a.createdAt),
+          : this.sort() === "oldest"
+            ? a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id)
+            : b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id),
       );
   });
   readonly selected = computed(
@@ -149,6 +154,7 @@ export class RequestStore {
     effect(() => {
       try {
         localStorage.setItem(KEY, JSON.stringify(this.requests()));
+        this.storageError.set(false);
       } catch {
         this.storageError.set(true);
       }
@@ -185,6 +191,7 @@ export class RequestStore {
     };
     this.itemsState.update((items) => [request, ...items]);
     this.selectedId.set(request.id);
+    this.onlyMine.set(false);
     this.statusFilter.set("All");
     this.query.set("");
     this.categoryFilter.set("All");
@@ -220,6 +227,8 @@ export class RequestStore {
       sample.map((s) => ({ ...s, history: s.history.map((h) => ({ ...h })) })),
     );
     this.selectedId.set(null);
+    this.onlyMine.set(false);
+    this.sort.set("newest");
     this.statusFilter.set("All");
     this.categoryFilter.set("All");
     this.query.set("");

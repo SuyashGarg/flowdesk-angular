@@ -1,10 +1,12 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   computed,
   inject,
   signal,
 } from "@angular/core";
+import { paginate } from "./pagination";
 import { CommonModule } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -37,6 +39,41 @@ export class AppComponent {
   readonly view = signal("overview");
   readonly showForm = signal(false);
   readonly notice = signal("");
+  readonly searchText = signal("");
+  readonly pageSize = signal(25);
+  private readonly pageState = signal({ key: "", page: 1 });
+  private readonly pageKey = computed(() => JSON.stringify([
+    this.view(), this.store.query(), this.store.statusFilter(),
+    this.store.categoryFilter(), this.store.onlyMine(), this.store.sort(), this.pageSize(),
+  ]));
+  readonly requestPage = computed(() => paginate(this.store.filtered(),
+    this.pageState().key === this.pageKey() ? this.pageState().page : 1, this.pageSize()));
+  readonly activityPageIndex = signal(1);
+  readonly activityPage = computed(() => paginate(this.recentActivity(), this.activityPageIndex(), 25));
+  private searchTimer: ReturnType<typeof setTimeout> | undefined;
+  constructor() {
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.searchTimer));
+  }
+  search(value: string) {
+    this.searchText.set(value);
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.store.query.set(value);
+      this.changePage(1);
+    }, 250);
+  }
+  private clearSearch() {
+    clearTimeout(this.searchTimer);
+    this.searchText.set("");
+    this.store.query.set("");
+  }
+  changePage(page: number) {
+    this.pageState.set({ key: this.pageKey(), page });
+  }
+  setPageSize(value: number) {
+    this.pageSize.set(Number(value));
+    this.changePage(1);
+  }
   readonly statuses: Array<RequestStatus | "All"> = [
     "All",
     "Pending",
@@ -69,21 +106,47 @@ export class AppComponent {
       )
       .sort((a, b) => b.at.localeCompare(a.at)),
   );
+  readonly categorySpending = computed(() => {
+    const totals = this.categories.map(category => ({
+      category,
+      amount: this.store.requests().filter(r => r.category === category && r.status !== "Rejected").reduce((sum, r) => sum + r.amount, 0),
+    }));
+    const max = Math.max(1, ...totals.map(item => item.amount));
+    return totals.map(item => ({ ...item, width: item.amount / max * 100 }));
+  });
+  reviewNext() {
+    const next = this.store.pendingQueue()[0];
+    if (next) this.select(next.id);
+  }
   note = "";
   setRole(role: string) {
     this.store.role.set(role as Role);
   }
   setStatus(status: string) {
     this.store.statusFilter.set(status as RequestStatus | "All");
+    this.changePage(1);
   }
   setCategory(category: string) {
     this.store.categoryFilter.set(category as RequestCategory | "All");
+    this.changePage(1);
+  }
+  setSort(value: string) {
+    this.store.sort.set(value);
+    this.changePage(1);
+  }
+  setOnlyMine(value: boolean) {
+    this.store.onlyMine.set(value);
+    this.changePage(1);
   }
   navigate(view: string) {
     this.view.set(view);
     this.store.statusFilter.set("All");
-    this.store.query.set("");
+    this.clearSearch();
+    this.activityPageIndex.set(1);
+    this.pageState.set({ key: "", page: 1 });
     this.store.categoryFilter.set("All");
+    this.store.onlyMine.set(false);
+    this.store.sort.set("newest");
   }
   create(input: {
     title: string;
@@ -91,6 +154,8 @@ export class AppComponent {
     amount: number;
     description: string;
   }) {
+    this.clearSearch();
+    this.changePage(1);
     this.store.add(input);
     this.showForm.set(false);
     this.view.set("requests");
@@ -114,6 +179,8 @@ export class AppComponent {
     this.store.selectedId.set(id);
   }
   exportCsv() {
+    clearTimeout(this.searchTimer);
+    this.store.query.set(this.searchText());
     const rows = [
       ["ID", "Title", "Category", "Requester", "Amount (USD)", "Status"],
       ...this.store
@@ -157,6 +224,8 @@ export class AppComponent {
         "Replace your requests and decisions with the original demo data?",
       )
     ) {
+      this.clearSearch();
+      this.changePage(1);
       this.store.reset();
       this.notice.set("Demo data restored.");
     }

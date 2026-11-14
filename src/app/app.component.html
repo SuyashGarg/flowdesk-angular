@@ -181,6 +181,7 @@
               @for (status of statuses; track status) {
                 <button
                   [class.selected]="store.statusFilter() === status"
+                  [attr.aria-pressed]="store.statusFilter() === status"
                   (click)="setStatus(status)"
                 >
                   {{ status === "All" ? "All requests" : status }}
@@ -220,12 +221,18 @@
               <mat-select
                 aria-label="Sort requests"
                 [ngModel]="store.sort()"
-                (ngModelChange)="store.sort.set($event)"
+                (ngModelChange)="setSort($event)"
               >
                 <mat-option value="newest">Newest first</mat-option>
                 <mat-option value="amount">Highest amount</mat-option>
               </mat-select>
             </mat-form-field>
+          </div>
+          <div class="queue-toolbar">
+            <label><input type="checkbox" [ngModel]="store.onlyMine()" (ngModelChange)="setOnlyMine($event)" /> My requests</label>
+            @if (store.role() === 'Approver' && store.pendingCount()) {
+              <button class="secondary" (click)="reviewNext()">Review oldest pending →</button>
+            }
           </div>
           <div class="table-wrap">
             <table>
@@ -240,7 +247,7 @@
                 </tr>
               </thead>
               <tbody>
-                @for (r of store.filtered(); track r.id) {
+                @for (r of requestPage().rows; track r.id) {
                   <tr>
                     <td>
                       <button class="request-title" (click)="select(r.id)">
@@ -310,10 +317,15 @@
             </table>
           </div>
           <div class="table-footer">
-            Showing {{ store.filtered().length }} of
-            {{ store.requests().length }} requests<span
-              >All amounts in USD</span
-            >
+            <span role="status">Showing {{ requestPage().start }}–{{ requestPage().end }} of {{ requestPage().total }} matching requests · {{ store.requests().length }} total</span>
+            <div class="pagination" aria-label="Request pagination">
+              <label>Rows <select aria-label="Requests per page" [ngModel]="pageSize()" (ngModelChange)="setPageSize($event)">
+                <option [ngValue]="25">25</option><option [ngValue]="50">50</option><option [ngValue]="100">100</option>
+              </select></label>
+              <button class="secondary" aria-label="Previous request page" [disabled]="requestPage().page === 1" (click)="changePage(requestPage().page - 1)">← Previous</button>
+              <span>Page {{ requestPage().page }} of {{ requestPage().pageCount }}</span>
+              <button class="secondary" aria-label="Next request page" [disabled]="requestPage().page === requestPage().pageCount" (click)="changePage(requestPage().page + 1)">Next →</button>
+            </div>
           </div>
         </section>
         @if (view() === "overview") {
@@ -335,17 +347,16 @@
                 </button>
               }
             </article>
-            <article class="help-card">
-              <div class="eyebrow">A BETTER WAY TO REQUEST</div>
-              <h2>Good context.<br />Faster decisions.</h2>
-              <p>
-                Include the business need, a clear cost, and who will benefit
-                when you submit a request.
-              </p>
-              <button class="text-button" (click)="showForm.set(true)">
-                Create your first request →
-              </button>
+            <article class="panel spending-panel">
+              <div class="panel-heading"><div><h2>Spending by category</h2><p>Pending and approved requests · USD</p></div></div>
+              @for (item of categorySpending(); track item.category) {
+                <div class="spending-item">
+                  <div><span>{{ item.category }}</span><strong>{{ item.amount | currency: 'USD' : 'symbol' : '1.0-0' }}</strong></div>
+                  <div class="spending-track"><span [style.width.%]="item.width"></span></div>
+                </div>
+              }
             </article>
+
           </section>
         }
       }
@@ -355,7 +366,7 @@
             <h2>Workspace activity</h2>
             <span class="muted">Newest first</span>
           </div>
-          @for (h of recentActivity(); track $index) {
+          @for (h of activityPage().rows; track $index) {
             <button class="activity-item" (click)="select(h.id)">
               <span class="activity-dot">✓</span
               ><span
@@ -364,9 +375,14 @@
               ><time>{{ h.at | date: "medium" }}</time>
             </button>
           }
-          <p class="panel-footnote">
-            Open any request to see its complete history.
-          </p>
+          <div class="table-footer">
+            <span role="status">Events {{ activityPage().start }}–{{ activityPage().end }} of {{ activityPage().total }}</span>
+            <div class="pagination" aria-label="Activity pagination">
+              <button class="secondary" [disabled]="activityPage().page === 1" (click)="activityPageIndex.set(activityPage().page - 1)">Previous</button>
+              <span>Page {{ activityPage().page }} of {{ activityPage().pageCount }}</span>
+              <button class="secondary" [disabled]="activityPage().page === activityPage().pageCount" (click)="activityPageIndex.set(activityPage().page + 1)">Next</button>
+            </div>
+          </div>
         </section>
       }
       @if (view() === "guide") {
@@ -521,6 +537,9 @@
           This request is {{ r.status.toLowerCase() }}. The decision is recorded
           in its timeline.
         </p>
+        @if (store.role() === 'Approver' && store.pendingCount()) {
+          <button class="primary next-review" (click)="reviewNext()">Review next pending →</button>
+        }
       }
     </section>
   </div>

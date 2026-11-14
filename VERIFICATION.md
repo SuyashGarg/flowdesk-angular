@@ -1,3 +1,19 @@
+## Large-list checks — November 12, 2026
+
+- `node scripts/check-scale.cjs` passed with 1,500 synthetic requests, checking complete page coverage, filtering, page sizes, empty results, debounced search and cancellation, bounded activity pages, and page clamping after results shrink.
+- Angular template/type compilation (`ngc --noEmit -p tsconfig.app.json`) and `git diff --check` passed.
+- Production bundling again exited with code 134 without diagnostics. No browser rendering benchmark was performed. The synthetic dataset was not written to user storage.
+
+## Enhancement checks — November 12, 2026
+
+- TypeScript type check passed (`tsc --noEmit -p tsconfig.app.json`).
+- Angular template compilation passed (`ngc --noEmit -p tsconfig.app.json`).
+- Store behavior checks passed for oldest-first ordering, ownership filtering, creation, role restrictions, rejection reasons, immutable final decisions, and reset. These checks executed the transpiled store with lightweight signal and storage substitutes; they do not replace browser integration tests.
+- `git diff --check` passed.
+- Production bundling was attempted twice (including with two build workers); both processes exited with code 134 without a diagnostic. A successful production bundle and browser interaction checks remain unverified for these enhancements.
+
+## Earlier baseline verification
+
 # Verification
 
 Production build: passed (`npm run build`).

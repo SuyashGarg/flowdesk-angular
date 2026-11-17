@@ -31,7 +31,9 @@ module.exports = async function handler(req, res) {
       items = parsed;
     } catch { /* A corrupt, stale or edited cookie gets a fresh demo. */ }
   }
-  // Rewrites preserve the original request path on Vercel.
+  // Vercel rewrites the URL; forward the matched API path explicitly.
+  const route = req.query?.route || new URL(req.url, 'http://localhost').searchParams.get('route');
+  if (typeof route === 'string') req.url = '/api/' + route.replace(/^\/+/, '');
   return createHandler({
     load: () => items,
     save: next => {

@@ -17,6 +17,7 @@ async function call(method, url, body, cookie = '') {
 }
 (async () => {
   assert.equal((await call('GET', '/api/requests', {})).body.length, 4);
+  assert.equal((await call('GET', '/api?route=requests', {})).body.length, 4, 'Vercel rewrite forwards the original path');
   const created = await call('POST', '/api/requests', { title: 'Reviewer walkthrough', category: 'Software', amount: 250, description: 'A sample request for reviewing the complete approval flow.' });
   assert.equal(created.status, 201);
   assert.ok(created.cookie);

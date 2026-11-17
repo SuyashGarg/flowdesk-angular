@@ -106,3 +106,13 @@ Responses take 450 ms so loading and saving states are visible. Writes finish be
 Stop `npm run api` and refresh the workspace to exercise the error/retry UI. Restart it and click Refresh to recover. For deterministic API failures, send `X-Mock-Error: true` (returns 503). Invalid inputs return 422; duplicate decisions return 409. All users of this local server share its data.
 
 Run `node scripts/check-api.cjs` for isolated HTTP integration checks. The script starts its own API on an ephemeral port and stores test data in a temporary directory.
+
+## Hosted demo on Vercel
+
+`vercel.json` builds Angular into `dist/approval-flow/browser` and routes `/api/*` to `api/index.js`. This Vercel Function uses the same validation and decision rules as the local Node API (`mock/api-handler.cjs`). The Angular dev proxy only applies to local development; it is not a hosted backend.
+
+Before deploying, set a strong random `DEMO_COOKIE_SECRET` environment variable in Vercel for Production and Preview, then redeploy. Keep the value private and stable across deployments. Node 22 is pinned in `.nvmrc` and package engines.
+
+The hosted mock API stores each visitor's fictional workspace in a compressed, signed, HttpOnly, Secure, SameSite=Lax cookie lasting seven days. This keeps requests and decisions across reloads and serverless cold starts without a paid database. Visitors are isolated; resetting one demo does not reset another. Cookie capacity is limited: a full workspace returns a clear error and can be reset from the sidebar. Clearing cookies, changing the signing secret, or cookie expiry restores seed data. Concurrent tabs use last-write-wins behavior. Local development retains file persistence. This is a mock workflow, not authentication or durable business storage.
+
+Run `node scripts/check-vercel-api.cjs` to check hosted-handler behavior locally, including create, approve, refresh, isolation, reset, and cookie validation. No personal or confidential data should be entered into this public demo.

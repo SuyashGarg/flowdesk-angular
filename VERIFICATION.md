@@ -55,3 +55,11 @@ Chromium checks at 1440×900, 390×844, and 1024×500 verified:
 - Development bundle built successfully. Browser checks confirmed loaded seed data, styled queue controls, pagination and spending bars. At 390px the document width equals the viewport width (no page overflow).
 - Production bundling still exits 134 without diagnostics under installed Node 24.8.0, including with one build worker. This was recorded before these changes; production output remains unverified. Use the documented Node 20/22 environment to investigate further.
 - UI create/approve interactions were not exercised end to end in the browser; HTTP workflows and template compilation were checked separately.
+
+## Vercel API repair — November 17, 2026
+
+- Confirmed live `/api/requests` returned HTTP 200 with `text/html` and the Angular index document instead of JSON.
+- Added the Vercel function, explicit API routing, a shared API handler, and signed cookie persistence for isolated hosted demo workspaces.
+- Local HTTP integration checks, hosted-handler checks, the 1,500-request regression script, Angular template/type compilation, and `git diff --check` passed.
+- Hosted-handler checks cover parsed Vercel request bodies, creation, approval, state across fresh invocations, isolation between visitors, reset, tampered cookies, invalid inputs, and missing signing-secret configuration.
+- Deployment and live end-to-end verification await Vercel team authorization. Production bundling locally still exits 134 without diagnostics, including with Node 22; no successful production build is claimed for this change.

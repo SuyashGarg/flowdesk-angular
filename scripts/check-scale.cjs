@@ -10,14 +10,15 @@ function load(file, imports, extras = {}) {
   return context.exports;
 }
 const signal = initial => { let value = initial; const s = () => value; s.set = v => value = v; s.update = fn => value = fn(value); s.asReadonly = () => () => value; return s; };
-const core = { signal, computed: fn => fn, effect: () => {}, Injectable: () => klass => klass, Component: () => klass => klass, ChangeDetectionStrategy: { OnPush: 0 }, DestroyRef: Symbol() };
+const core = { signal, computed: fn => fn, effect: () => {}, inject: () => ({ list: async () => data }), Injectable: () => klass => klass, Component: () => klass => klass, ChangeDetectionStrategy: { OnPush: 0 }, DestroyRef: Symbol() };
 const data = Array.from({ length: 1500 }, (_, i) => ({ id: `REQ-${2000+i}`, title: `Request ${i}`, category: ['Software', 'Travel', 'Equipment'][i%3], amount: i+1, requester: i%2 ? 'You' : 'Sam Lee', createdAt: new Date(Date.UTC(2026, 0, 1+i%300)).toISOString(), status: ['Pending', 'Approved', 'Rejected'][i%3], description: 'A detailed business justification.', history: [{at: '2026-01-01', action: 'Submitted', by: 'You'}] }));
-const { RequestStore } = load('src/app/request.store.ts', { '@angular/core': core }, { localStorage: { getItem: () => JSON.stringify(data) } });
+const { RequestStore } = load('src/app/request.store.ts', { '@angular/core': core, './request.api': {} });
 const store = new RequestStore();
+store.itemsState.set(data);
 const { paginate } = load('src/app/pagination.ts', {});
 let timer;
 core.inject = token => token === core.DestroyRef ? {onDestroy: () => {}} : store;
-const { AppComponent } = load('src/app/app.component.ts', { '@angular/core': core, '@angular/common': {}, '@angular/forms': {}, './request.store': { RequestStore }, './pagination': { paginate }, './dialog-focus.directive': {}, './request-form.component': {} }, { setTimeout: fn => { timer = fn; return 1; }, clearTimeout: () => { timer = undefined; } });
+const { AppComponent } = load('src/app/app.component.ts', { '@angular/core': core, '@angular/common': {}, '@angular/forms': {}, '@angular/material/button': {}, '@angular/material/form-field': {}, '@angular/material/input': {}, '@angular/material/select': {}, '@angular/material/checkbox': {}, '@angular/material/progress-bar': {}, './request.store': { RequestStore }, './pagination': { paginate }, './dialog-focus.directive': {}, './request-form.component': {} }, { setTimeout: fn => { timer = fn; return 1; }, clearTimeout: () => { timer = undefined; } });
 const app = new AppComponent();
 assert.equal(app.requestPage().rows.length, 25);
 assert.equal(app.requestPage().pageCount, 60);

@@ -37,6 +37,8 @@ html {
   @include mat.input-theme($flowdesk-theme);
   @include mat.select-theme($flowdesk-theme);
   @include mat.option-theme($flowdesk-theme);
+  @include mat.checkbox-theme($flowdesk-theme);
+  @include mat.progress-bar-theme($flowdesk-theme);
 }
 
 :root {
@@ -75,4 +77,27 @@ button:not([mat-button]):not([mat-flat-button]):not([mat-stroked-button]):not(
     [mat-icon-button]
   ):hover {
   filter: brightness(0.96);
+}
+
+// Compact toolbar controls; request forms retain their comfortable default sizing.
+$toolbar-theme: mat.define-theme((density: (scale: -4)));
+.role-field,
+.filter-row mat-form-field,
+.search-field {
+  @include mat.form-field-density($toolbar-theme);
+  --mat-form-field-container-text-size: 12px;
+  --mat-form-field-container-text-line-height: 20px;
+  --mat-select-trigger-text-size: 12px;
+  --mat-select-trigger-text-line-height: 20px;
+  --mdc-outlined-text-field-label-text-size: 12px;
+  --mat-form-field-container-text-tracking: 0;
+  --mat-select-trigger-text-tracking: 0;
+}
+.compact-select-panel {
+  --mat-option-label-text-size: 12px;
+  --mat-option-label-text-line-height: 20px;
+  --mat-option-label-text-tracking: 0;
+}
+.compact-select-panel .mat-mdc-option {
+  min-height: 36px;
 }

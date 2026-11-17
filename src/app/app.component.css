@@ -203,7 +203,7 @@ nav b {
   gap: 15px;
 }
 .role-field {
-  width: 145px;
+  width: 125px;
 }
 main {
   max-width: 1500px;
@@ -401,7 +401,7 @@ main {
   font-size: 10px;
 }
 .filter-row mat-form-field {
-  width: 180px;
+  width: 160px;
   max-width: 100%;
 }
 .table-wrap {
@@ -1056,7 +1056,7 @@ footer span {
     width: calc(50% - 6px);
   }
   .role-field {
-    width: 130px;
+    width: 125px;
   }
 }
 
@@ -1065,3 +1065,96 @@ footer span {
     width: 100%;
   }
 }
+
+/* Queue and pagination controls share the workspace's compact spacing. */
+.queue-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 0 24px 18px;
+  color: #66765d;
+  font-size: 11px;
+}
+.queue-toolbar label,
+.pagination,
+.pagination label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.queue-toolbar input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #285e49;
+}
+.queue-toolbar button,
+.pagination button {
+  font-size: 11px;
+}
+.table-footer {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.pagination {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  font-size: 10px;
+}
+.pagination select {
+  border: 1px solid #d5dfce;
+  border-radius: 6px;
+  background: #fff;
+  color: #52644f;
+  padding: 6px;
+}
+.spending-item {
+  padding: 0 24px 20px;
+  font-size: 11px;
+  color: #66765d;
+}
+.spending-item > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+}
+.spending-item strong {
+  font-weight: 600;
+  color: #52644f;
+}
+.spending-track {
+  height: 6px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #edf3ec;
+}
+.spending-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #83a98d;
+}
+.next-review {
+  margin-top: 12px;
+}
+@media (max-width: 600px) {
+  .queue-toolbar {
+    padding: 0 16px 16px;
+  }
+  .pagination {
+    justify-content: flex-start;
+    width: 100%;
+  }
+  .spending-item {
+    padding-inline: 16px;
+  }
+}
+
+.workspace-actions { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+.sync-status { color: #66765d; font-size: 12px; }
+.alert { gap: 12px; flex-wrap: wrap; }

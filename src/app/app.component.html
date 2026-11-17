@@ -61,6 +61,7 @@
           class="role-field"
         >
           <mat-select
+            panelClass="compact-select-panel"
             aria-label="Demo role"
             [ngModel]="store.role()"
             (ngModelChange)="setRole($event)"
@@ -73,11 +74,15 @@
       </div>
     </header>
     <main>
-      @if (store.storageError()) {
-        <p class="alert" role="alert">
-          Browser storage is unavailable. Changes will last only for this
-          session.
-        </p>
+      @if (store.loading() || store.saving()) {
+        <mat-progress-bar mode="indeterminate" aria-label="Synchronizing requests" />
+        <p class="sync-status" role="status">{{ store.loading() ? 'Loading workspace…' : 'Saving changes…' }}</p>
+      }
+      @if (store.error()) {
+        <div class="alert" role="alert">
+          {{ store.error() }}
+          <button mat-stroked-button [disabled]="store.loading() || store.saving()" (click)="store.load()">Refresh</button>
+        </div>
       }
       @if (notice()) {
         <div class="notice" role="status">
@@ -87,6 +92,7 @@
           </button>
         </div>
       }
+      <div class="workspace-actions"><button mat-button [disabled]="store.loading() || store.saving()" (click)="store.load()">↻ Refresh workspace</button></div>
       <section class="page-heading">
         <div>
           <div class="eyebrow">YOUR WORKSPACE, IN FOCUS</div>
@@ -113,7 +119,7 @@
             }}
           </p>
         </div>
-        <button mat-flat-button class="primary" (click)="showForm.set(true)">
+        <button mat-flat-button class="primary" [disabled]="store.loading() || store.saving() || !!store.error()" (click)="showForm.set(true)">
           <span>＋</span> New request
         </button>
       </section>
@@ -206,6 +212,7 @@
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
               <mat-label>Category</mat-label>
               <mat-select
+                panelClass="compact-select-panel"
                 aria-label="Filter by category"
                 [ngModel]="store.categoryFilter()"
                 (ngModelChange)="setCategory($event)"
@@ -219,19 +226,21 @@
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
               <mat-label>Sort by</mat-label>
               <mat-select
+                panelClass="compact-select-panel"
                 aria-label="Sort requests"
                 [ngModel]="store.sort()"
                 (ngModelChange)="setSort($event)"
               >
                 <mat-option value="newest">Newest first</mat-option>
                 <mat-option value="amount">Highest amount</mat-option>
+                <mat-option value="oldest">Oldest first</mat-option>
               </mat-select>
             </mat-form-field>
           </div>
           <div class="queue-toolbar">
-            <label><input type="checkbox" [ngModel]="store.onlyMine()" (ngModelChange)="setOnlyMine($event)" /> My requests</label>
+            <mat-checkbox [ngModel]="store.onlyMine()" (ngModelChange)="setOnlyMine($event)">My requests</mat-checkbox>
             @if (store.role() === 'Approver' && store.pendingCount()) {
-              <button class="secondary" (click)="reviewNext()">Review oldest pending →</button>
+              <button mat-stroked-button class="secondary" (click)="reviewNext()">Review oldest pending →</button>
             }
           </div>
           <div class="table-wrap">
@@ -298,10 +307,9 @@
                 } @empty {
                   <tr>
                     <td colspan="6" class="empty">
-                      <h3>No matching requests</h3>
+                      <h3>{{ store.loading() ? "Loading requests…" : store.error() ? "Requests unavailable" : "No matching requests" }}</h3>
                       <p>
-                        Try a different search or filter, or create a new
-                        request.
+                        {{ store.loading() ? "Your workspace will appear shortly." : store.error() ? "Use Refresh to try loading the workspace again." : "Try a different search or filter, or create a new request." }}
                       </p>
                       <button
                         mat-stroked-button
@@ -322,9 +330,9 @@
               <label>Rows <select aria-label="Requests per page" [ngModel]="pageSize()" (ngModelChange)="setPageSize($event)">
                 <option [ngValue]="25">25</option><option [ngValue]="50">50</option><option [ngValue]="100">100</option>
               </select></label>
-              <button class="secondary" aria-label="Previous request page" [disabled]="requestPage().page === 1" (click)="changePage(requestPage().page - 1)">← Previous</button>
+              <button mat-stroked-button class="secondary" aria-label="Previous request page" [disabled]="requestPage().page === 1" (click)="changePage(requestPage().page - 1)">← Previous</button>
               <span>Page {{ requestPage().page }} of {{ requestPage().pageCount }}</span>
-              <button class="secondary" aria-label="Next request page" [disabled]="requestPage().page === requestPage().pageCount" (click)="changePage(requestPage().page + 1)">Next →</button>
+              <button mat-stroked-button class="secondary" aria-label="Next request page" [disabled]="requestPage().page === requestPage().pageCount" (click)="changePage(requestPage().page + 1)">Next →</button>
             </div>
           </div>
         </section>
@@ -378,9 +386,9 @@
           <div class="table-footer">
             <span role="status">Events {{ activityPage().start }}–{{ activityPage().end }} of {{ activityPage().total }}</span>
             <div class="pagination" aria-label="Activity pagination">
-              <button class="secondary" [disabled]="activityPage().page === 1" (click)="activityPageIndex.set(activityPage().page - 1)">Previous</button>
+              <button mat-stroked-button class="secondary" [disabled]="activityPage().page === 1" (click)="activityPageIndex.set(activityPage().page - 1)">Previous</button>
               <span>Page {{ activityPage().page }} of {{ activityPage().pageCount }}</span>
-              <button class="secondary" [disabled]="activityPage().page === activityPage().pageCount" (click)="activityPageIndex.set(activityPage().page + 1)">Next</button>
+              <button mat-stroked-button class="secondary" [disabled]="activityPage().page === activityPage().pageCount" (click)="activityPageIndex.set(activityPage().page + 1)">Next</button>
             </div>
           </div>
         </section>
@@ -407,7 +415,7 @@
               {
                 n: "04",
                 title: "Understand the boundaries",
-                text: "This is a browser-only prototype using mock people and local storage. The demo role switch is not security. A production version needs server-side authorization, a database, and a verified audit log.",
+                text: "This is a prototype with mock people and a local HTTP API. The demo role switch is not security. A production version needs server-side authorization, a database, and a verified audit log.",
               },
             ];
             track g.n
@@ -428,7 +436,7 @@
   </div>
 </div>
 @if (showForm()) {
-  <div class="overlay" (click)="showForm.set(false)">
+  <div class="overlay" (click)="!store.saving() && showForm.set(false)">
     <section
       class="dialog"
       appDialogFocus
@@ -436,7 +444,7 @@
       aria-modal="true"
       aria-labelledby="form-title"
       (click)="$event.stopPropagation()"
-      (dialogEscape)="showForm.set(false)"
+      (dialogEscape)="!store.saving() && showForm.set(false)"
       tabindex="-1"
     >
       <div class="dialog-heading">
@@ -447,15 +455,17 @@
         <button
           mat-icon-button
           aria-label="Close form"
-          (click)="showForm.set(false)"
+          [disabled]="store.saving()" (click)="showForm.set(false)"
         >
           ×
         </button>
       </div>
       <p class="muted">Give your approver the context they need to say yes.</p>
       <app-request-form
+        [saving]="store.saving()"
+        [saveError]="store.error()"
         (saved)="create($event)"
-        (cancelled)="showForm.set(false)"
+        (cancelled)="!store.saving() && showForm.set(false)"
       />
     </section>
   </div>
@@ -492,6 +502,7 @@
           <small>AMOUNT</small><strong>{{ r.amount | currency }}</strong>
         </div>
       </div>
+      @if (store.error()) { <p class="alert" role="alert">{{ store.error() }}</p> }
       <h3>Business justification</h3>
       <p class="justification">{{ r.description }}</p>
       <h3>Request timeline</h3>
@@ -521,10 +532,10 @@
           <button
             mat-stroked-button
             class="reject"
-            (click)="decide('Rejected')"
+            [disabled]="store.saving()" (click)="decide('Rejected')"
           >
             Reject request</button
-          ><button mat-flat-button class="primary" (click)="decide('Approved')">
+          ><button mat-flat-button class="primary" [disabled]="store.saving()" (click)="decide('Approved')">
             ✓ Approve request
           </button>
         </div>
@@ -538,7 +549,7 @@
           in its timeline.
         </p>
         @if (store.role() === 'Approver' && store.pendingCount()) {
-          <button class="primary next-review" (click)="reviewNext()">Review next pending →</button>
+          <button mat-flat-button class="primary next-review" (click)="reviewNext()">Review next pending →</button>
         }
       }
     </section>

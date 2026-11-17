@@ -1,4 +1,4 @@
-import { Component, output } from "@angular/core";
+import { Component, input, output } from "@angular/core";
 import {
   ReactiveFormsModule,
   FormControl,
@@ -77,11 +77,12 @@ import { RequestCategory } from "./request.model";
           Please review the highlighted fields before submitting.
         </p>
       }
+      @if (saveError()) { <p class="error" role="alert">{{ saveError() }}</p> }
       <div class="actions">
-        <button mat-button type="button" (click)="cancelled.emit()">
+        <button mat-button type="button" [disabled]="saving()" (click)="cancelled.emit()">
           Cancel
         </button>
-        <button mat-flat-button type="submit">Submit request ↗</button>
+        <button mat-flat-button type="submit" [disabled]="saving()">{{ saving() ? "Submitting…" : "Submit request ↗" }}</button>
       </div>
     </form>
   `,
@@ -126,6 +127,8 @@ import { RequestCategory } from "./request.model";
   ],
 })
 export class RequestFormComponent {
+  readonly saving = input(false);
+  readonly saveError = input("");
   readonly categories: RequestCategory[] = [
     "Software",
     "Equipment",
@@ -169,6 +172,7 @@ export class RequestFormComponent {
     }),
   });
   submit() {
+    if (this.saving()) return;
     this.attempted = true;
     this.form.markAllAsTouched();
     if (this.form.valid) {

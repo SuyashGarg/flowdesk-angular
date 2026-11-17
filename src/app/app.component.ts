@@ -8,6 +8,8 @@ import {
 } from "@angular/core";
 import { paginate } from "./pagination";
 import { CommonModule } from "@angular/common";
+import { MatProgressBarModule } from "@angular/material/progress-bar";
+import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatButtonModule } from "@angular/material/button";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
@@ -23,6 +25,8 @@ import { RequestCategory, RequestStatus, Role } from "./request.model";
   imports: [
     CommonModule,
     MatButtonModule,
+    MatProgressBarModule,
+    MatCheckboxModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
@@ -148,7 +152,7 @@ export class AppComponent {
     this.store.onlyMine.set(false);
     this.store.sort.set("newest");
   }
-  create(input: {
+  async create(input: {
     title: string;
     category: RequestCategory;
     amount: number;
@@ -156,12 +160,12 @@ export class AppComponent {
   }) {
     this.clearSearch();
     this.changePage(1);
-    this.store.add(input);
+    if (!await this.store.add(input)) return;
     this.showForm.set(false);
     this.view.set("requests");
     this.notice.set("Request submitted. It is ready for review.");
   }
-  decide(action: "Approved" | "Rejected") {
+  async decide(action: "Approved" | "Rejected") {
     const r = this.store.selected();
     if (!r) return;
     if (action === "Rejected" && this.note.trim().length < 5) {
@@ -170,7 +174,7 @@ export class AppComponent {
       );
       return;
     }
-    this.store.decide(r.id, action, this.note);
+    if (!await this.store.decide(r.id, action, this.note)) return;
     this.note = "";
     this.notice.set(`${r.id} ${action.toLowerCase()}.`);
   }
@@ -218,7 +222,7 @@ export class AppComponent {
     URL.revokeObjectURL(url);
     this.notice.set("Filtered requests exported.");
   }
-  reset() {
+  async reset() {
     if (
       confirm(
         "Replace your requests and decisions with the original demo data?",
@@ -226,7 +230,7 @@ export class AppComponent {
     ) {
       this.clearSearch();
       this.changePage(1);
-      this.store.reset();
+      if (!await this.store.reset()) return;
       this.notice.set("Demo data restored.");
     }
   }

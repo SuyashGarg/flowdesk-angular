@@ -46,3 +46,12 @@ Chromium checks at 1440×900, 390×844, and 1024×500 verified:
 - Approval notes, persisted decisions, category filters, sorting, and requester mode still work.
 - Mobile content has no horizontal page overflow and the new request form submits successfully.
 - No browser runtime errors during these scenarios.
+
+## UI repair and mock HTTP API — November 17, 2026
+
+- Angular template compilation (`ngc --noEmit -p tsconfig.app.json`) and `git diff --check` passed.
+- `node scripts/check-scale.cjs` passed after updating the harness for Material imports and async initial data.
+- `node scripts/check-api.cjs` passed against an isolated API: list, create, input validation, role restrictions, rejection reasons, immutable decisions, file persistence, reset, and simulated 503 response.
+- Development bundle built successfully. Browser checks confirmed loaded seed data, styled queue controls, pagination and spending bars. At 390px the document width equals the viewport width (no page overflow).
+- Production bundling still exits 134 without diagnostics under installed Node 24.8.0, including with one build worker. This was recorded before these changes; production output remains unverified. Use the documented Node 20/22 environment to investigate further.
+- UI create/approve interactions were not exercised end to end in the browser; HTTP workflows and template compilation were checked separately.

@@ -2,3 +2,6 @@ node_modules/
 dist/
 .angular/
 .DS_Store
+
+# Persistent local mock API data
+mock/data.json
